@@ -1,0 +1,5 @@
+name: BukkitHttpd
+main: me.StevenLawson.bukkithttpd.BukkitHttpd
+version: 1.1
+description: Basic HTTP Server for Bukkit
+author: StevenLawson / Madgeek1450
