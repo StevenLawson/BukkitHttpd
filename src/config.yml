@@ -1,0 +1,8 @@
+#Port to bind to:
+port: 8181
+
+#Per-connection timeout, in milliseconds:
+timeout: 5000
+
+#Auth password:
+password: sesame

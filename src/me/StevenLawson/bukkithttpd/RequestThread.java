@@ -15,10 +15,19 @@ $Id: ServerSideScriptEngine.java,v 1.4 2004/02/01 13:37:35 pjm2 Exp $
  */
 package me.StevenLawson.bukkithttpd;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.util.logging.Logger;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.Socket;
+import java.net.URLDecoder;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
@@ -30,14 +39,15 @@ import org.bukkit.Bukkit;
  */
 public class RequestThread extends Thread
 {
-    private static final Logger log = Logger.getLogger("Minecraft");
     private File _rootDir;
     private Socket _socket;
+    private BukkitHttpd _plugin;
     
-    public RequestThread(Socket socket, File rootDir)
+    public RequestThread(Socket socket, File rootDir, BukkitHttpd instance)
     {
         _socket = socket;
         _rootDir = rootDir;
+        _plugin = instance;
     }
 
     private static void sendHeader(BufferedOutputStream out, int code, String contentType, long contentLength, long lastModified) throws IOException
@@ -80,12 +90,13 @@ public class RequestThread extends Thread
         out.close();
     }
 
+    @Override
     public void run()
     {
         InputStream reader = null;
         try
         {
-            _socket.setSoTimeout(BukkitHttpd.TIMEOUT);
+            _socket.setSoTimeout(_plugin.timeout);
 
             BufferedReader in = new BufferedReader(new InputStreamReader(_socket.getInputStream()));
             BufferedOutputStream out = new BufferedOutputStream(_socket.getOutputStream());
@@ -150,7 +161,7 @@ public class RequestThread extends Thread
                 String command = post_vars.get("command");
                 if (password != null && command != null)
                 {
-                    if (password.equals(BukkitHttpd.PASSWORD) && !command.isEmpty())
+                    if (password.equals(_plugin.password) && !command.isEmpty())
                     {
                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
                         sendPostResponse(out, "Command sent: " + command);
@@ -196,7 +207,7 @@ public class RequestThread extends Thread
                 sendError(out, 403, "Permission Denied.");
                 return;
             }
-            if (!password.equals(BukkitHttpd.PASSWORD))
+            if (!password.equals(_plugin.password))
             {
                 sendError(out, 403, "Permission Denied.");
                 return;
@@ -251,7 +262,7 @@ public class RequestThread extends Thread
                     {
                         description = "&lt;DIR&gt;";
                     }
-                    out.write(("<a href=\"" + request_path + filename + "?password=" + BukkitHttpd.PASSWORD + "\">" + filename + "</a> " + description + "<br>\n").getBytes());
+                    out.write(("<a href=\"" + request_path + filename + "?password=" + _plugin.password + "\">" + filename + "</a> " + description + "<br>\n").getBytes());
                 }
                 out.write(("</p><hr><p>" + SimpleWebServer.VERSION + "</p></body><html>").getBytes());
             }
@@ -260,10 +271,6 @@ public class RequestThread extends Thread
                 reader = new BufferedInputStream(new FileInputStream(file));
 
                 String contentType = (String) SimpleWebServer.MIME_TYPES.get(SimpleWebServer.getExtension(file));
-//                if (contentType == null)
-//                {
-//                    contentType = "application/octet-stream";
-//                }
 
                 sendHeader(out, 200, contentType, file.length(), file.lastModified());
 
@@ -286,9 +293,8 @@ public class RequestThread extends Thread
                 {
                     reader.close();
                 }
-                catch (Exception anye)
+                catch (Exception ioex)
                 {
-                    // Do nothing.
                 }
             }
         }

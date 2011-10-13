@@ -15,9 +15,12 @@ $Id: ServerSideScriptEngine.java,v 1.4 2004/02/01 13:37:35 pjm2 Exp $
  */
 package me.StevenLawson.bukkithttpd;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,33 +32,37 @@ import java.util.logging.Logger;
 public class SimpleWebServer extends Thread
 {
     public static final String VERSION = "BukkitHttpd - by Madgeek";
-    public static final Hashtable MIME_TYPES = new Hashtable();
+    public static final Map<String, String> MIME_TYPES = new HashMap<String, String>();
+    
+    private BukkitHttpd _plugin;
+    private File _rootDir;
+    private ServerSocket _serverSocket;
+    private boolean _running = true;
 
     static
     {
-        String image = "image/";
-        MIME_TYPES.put(".gif", image + "gif");
-        MIME_TYPES.put(".jpg", image + "jpeg");
-        MIME_TYPES.put(".jpeg", image + "jpeg");
-        MIME_TYPES.put(".png", image + "png");
-        String text = "text/";
-        MIME_TYPES.put(".html", text + "html");
-        MIME_TYPES.put(".htm", text + "html");
-        MIME_TYPES.put(".txt", text + "plain");
-        MIME_TYPES.put(".log", text + "plain");
+        MIME_TYPES.put(".gif", "image/gif");
+        MIME_TYPES.put(".jpg", "image/jpeg");
+        MIME_TYPES.put(".png", "image/png");
+        MIME_TYPES.put(".html", "text/html");
+        MIME_TYPES.put(".htm", "text/html");
+        MIME_TYPES.put(".txt", "text/plain");
+        MIME_TYPES.put(".log", "text/plain");
+        MIME_TYPES.put(".yml", "text/plain");
     }
-
-    public SimpleWebServer(File rootDir, int port) throws IOException
+    
+    public SimpleWebServer(File rootDir, int port, BukkitHttpd instance) throws IOException
     {
+        _plugin = instance;
         _rootDir = rootDir.getCanonicalFile();
         if (!_rootDir.isDirectory())
         {
             throw new IOException("Not a directory.");
         }
         _serverSocket = new ServerSocket(port);
-        start();
     }
 
+    @Override
     public void run()
     {
         while (_running)
@@ -63,7 +70,7 @@ public class SimpleWebServer extends Thread
             try
             {
                 Socket socket = _serverSocket.accept();
-                RequestThread requestThread = new RequestThread(socket, _rootDir);
+                RequestThread requestThread = new RequestThread(socket, _rootDir, _plugin);
                 requestThread.start();
             }
             catch (IOException ex)
@@ -99,20 +106,4 @@ public class SimpleWebServer extends Thread
         }
         return extension.toLowerCase();
     }
-
-//    public static void main(String[] args)
-//    {
-//        try
-//        {
-//            SimpleWebServer server = new SimpleWebServer(new File("./"), 80);
-//        }
-//        catch (IOException e)
-//        {
-//            System.out.println(e);
-//        }
-//    }
-    
-    private File _rootDir;
-    private ServerSocket _serverSocket;
-    private boolean _running = true;
 }
