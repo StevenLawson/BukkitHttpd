@@ -17,8 +17,10 @@ package me.StevenLawson.bukkithttpd;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -31,14 +33,18 @@ import java.util.logging.Logger;
  */
 public class SimpleWebServer extends Thread
 {
-    public static final String VERSION = "BukkitHttpd - by Madgeek";
-    public static final Map<String, String> MIME_TYPES = new HashMap<String, String>();
+    private static final Logger log = Logger.getLogger("Minecraft");
     
     private BukkitHttpd _plugin;
     private File _rootDir;
     private ServerSocket _serverSocket;
-    private boolean _running = true;
+    
+    protected boolean is_running = false;
+    protected boolean is_ready = false;
+    
+    public static final String VERSION = "BukkitHttpd - by Madgeek";
 
+    public static final Map<String, String> MIME_TYPES = new HashMap<String, String>();
     static
     {
         MIME_TYPES.put(".gif", "image/gif");
@@ -51,21 +57,72 @@ public class SimpleWebServer extends Thread
         MIME_TYPES.put(".yml", "text/plain");
     }
     
-    public SimpleWebServer(File rootDir, int port, BukkitHttpd instance) throws IOException
+    public SimpleWebServer(File rootDir, String address, int port, BukkitHttpd instance)
     {
         _plugin = instance;
-        _rootDir = rootDir.getCanonicalFile();
+        
+        try
+        {
+            _rootDir = rootDir.getCanonicalFile();
+        }
+        catch (IOException ex)
+        {
+            log.log(Level.SEVERE, "[" + _plugin.getDescription().getName() + "]: Invalid root directory.");
+            return;
+        }
+        
         if (!_rootDir.isDirectory())
         {
-            throw new IOException("Not a directory.");
+            log.log(Level.SEVERE, "[" + _plugin.getDescription().getName() + "]: Invalid root directory.");
+            return;
         }
-        _serverSocket = new ServerSocket(port);
+        
+        InetAddress listen_address = null;
+        if (address != null)
+        {
+            try
+            {
+                listen_address = InetAddress.getByName(address);
+            }
+            catch (UnknownHostException ex)
+            {
+                log.log(Level.SEVERE, "[" + _plugin.getDescription().getName() + "]: Unknown host: " + address);
+                return;
+            }
+        }
+
+        try
+        {
+            if (listen_address == null)
+            {
+                _serverSocket = new ServerSocket(port);
+            }
+            else
+            {
+                _serverSocket = new ServerSocket(port, 0, listen_address);
+            }
+            
+            String bound_ip = _serverSocket.getInetAddress().getHostAddress();
+            if (bound_ip.equals("0.0.0.0"))
+            {
+                bound_ip = "*";
+            }
+            
+            log.info("[" + _plugin.getDescription().getName() + "]: Server started. Listening on " + bound_ip + ":" + port);
+        }
+        catch (IOException ex)
+        {           
+            log.log(Level.SEVERE, "[" + _plugin.getDescription().getName() + "]: Can't bind to: " + (address == null ? "*" : address) + ":" + port);
+            return;
+        }
+        
+        is_ready = true;
     }
 
     @Override
     public void run()
     {
-        while (_running)
+        while (is_running)
         {
             try
             {
@@ -73,23 +130,34 @@ public class SimpleWebServer extends Thread
                 RequestThread requestThread = new RequestThread(socket, _rootDir, _plugin);
                 requestThread.start();
             }
-            catch (IOException ex)
+            catch (Exception ex)
             {
-                Logger.getLogger("Minecraft").log(Level.SEVERE, null, ex);
             }
+        }
+    }
+    
+    public void startServer()
+    {
+        if (!this.is_running && this.is_ready)
+        {
+            this.start();
+            this.is_running = true;
         }
     }
     
     public void stopServer()
     {
-        _running = false;
+        is_running = false;
+        
         try
         {
-            _serverSocket.close();
+            if (_serverSocket != null)
+            {
+                _serverSocket.close();
+            }
         }
-        catch (IOException ex)
+        catch (Exception ex)
         {
-            Logger.getLogger("Minecraft").log(Level.SEVERE, null, ex);
         }
     }
 

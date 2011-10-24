@@ -1,8 +1,14 @@
-#Port to bind to:
+# Address to bind to, leave blank for all.
+address:
+
+# Port to bind to:
 port: 8181
 
-#Per-connection timeout, in milliseconds:
+# Per-connection timeout, in milliseconds:
 timeout: 5000
 
-#Auth password:
-password: sesame
+# Password, leave blank for none.
+password:
+
+# Root directory:
+root_directory: ./

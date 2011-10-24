@@ -15,48 +15,57 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class BukkitHttpd extends JavaPlugin
 {
     private static final Logger log = Logger.getLogger("Minecraft");
+    
     private SimpleWebServer server;
     
     public static final String CONFIG_FILE = "config.yml";
     
-    public int port = 8181;
-    public int timeout = 5000;
-    public String password = "";
+    protected String address = null;
+    protected int port = 8181;
+    protected int timeout = 5000;
+    protected String password = null;
+    protected String root_directory = "./";
+    
+    protected LoggerTest loghandler;
     
     @Override
     public void onEnable()
     {
-        log.log(Level.INFO, "[" + getDescription().getName() + "] - Enabled! - Version: " + getDescription().getVersion() + " by Madgeek1450");
-
+        log.log(Level.INFO, "[" + getDescription().getName() + "]: - Enabled! - Version: " + getDescription().getVersion() + " by Madgeek1450");
+        
         createDefaultConfiguration(CONFIG_FILE);
-
+        
         FileConfiguration config = YamlConfiguration.loadConfiguration(new File(getDataFolder(), CONFIG_FILE));
         
+        address = config.getString("address", null);
         port = config.getInt("port", port);
         timeout = config.getInt("timeout", timeout);
-        password = config.getString("password", password);
+        password = config.getString("password", null);
+        root_directory = config.getString("root_directory", root_directory);
         
-        try
+        loghandler = new LoggerTest(this);
+        
+        server = new SimpleWebServer(new File(root_directory), address, port, this);
+        
+        if (server.is_ready)
         {
-            server = new SimpleWebServer(new File("./"), port, this);
-            server.start();
-        }
-        catch (IOException ex)
-        {
-            Logger.getLogger("Minecraft").log(Level.SEVERE, null, ex);
+            server.startServer();
         }
         
-        log.info("[BukkitHttpd] Listening on port: " + port);
+        if (!server.is_running)
+        {
+            log.severe("[" + getDescription().getName() + "]: Error starting server.");
+        }
     }
     
     @Override
     public void onDisable()
     {
         server.stopServer();
-        
-        log.info("[BukkitHttpd] BukkitHttpd disabled.");
+        loghandler.close();
+        log.info("[" + getDescription().getName() + "]: BukkitHttpd disabled.");
     }
-
+    
     private void createDefaultConfiguration(String name)
     {
         File actual = new File(getDataFolder(), name);
@@ -82,7 +91,7 @@ public class BukkitHttpd extends JavaPlugin
             if (input != null)
             {
                 FileOutputStream output = null;
-
+                
                 try
                 {
                     getDataFolder().mkdirs();
@@ -93,7 +102,7 @@ public class BukkitHttpd extends JavaPlugin
                     {
                         output.write(buf, 0, length);
                     }
-
+                    
                     log.info("[" + getDescription().getName() + "]: Default configuration file written: " + actual.getPath());
                 }
                 catch (IOException ioex)
@@ -112,7 +121,7 @@ public class BukkitHttpd extends JavaPlugin
                     catch (IOException ioex)
                     {
                     }
-
+                    
                     try
                     {
                         if (output != null)

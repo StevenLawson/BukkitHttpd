@@ -42,7 +42,7 @@ public class RequestThread extends Thread
     private File _rootDir;
     private Socket _socket;
     private BukkitHttpd _plugin;
-    
+
     public RequestThread(Socket socket, File rootDir, BukkitHttpd instance)
     {
         _socket = socket;
@@ -81,13 +81,37 @@ public class RequestThread extends Thread
         out.flush();
         out.close();
     }
-    
+
     private static void sendPostResponse(BufferedOutputStream out, String message) throws IOException
     {
         sendHeader(out, 200, "text/html", message.length(), System.currentTimeMillis());
         out.write(message.getBytes());
         out.flush();
         out.close();
+    }
+
+    private boolean checkPassword(String in_password)
+    {
+        if (_plugin.password == null)
+        {
+            return true;
+        }
+        else if (_plugin.password.isEmpty())
+        {
+            return true;
+        }
+        else if (in_password == null)
+        {
+            return false;
+        }
+        else if (_plugin.password.equals(in_password))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     @Override
@@ -146,7 +170,7 @@ public class RequestThread extends Thread
                 {
                     post_body.append((char) in.read());
                 }
-                
+
                 Map<String, String> post_vars = new HashMap<String, String>();
                 for (String pair : post_body.toString().trim().split("&"))
                 {
@@ -156,19 +180,19 @@ public class RequestThread extends Thread
                         post_vars.put(URLDecoder.decode(parts[0], "UTF-8").toLowerCase().trim(), URLDecoder.decode(parts[1], "UTF-8").trim());
                     }
                 }
-                
+
                 String password = post_vars.get("password");
                 String command = post_vars.get("command");
-                if (password != null && command != null)
+                if (command != null)
                 {
-                    if (password.equals(_plugin.password) && !command.isEmpty())
+                    if (checkPassword(password) && !command.isEmpty())
                     {
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+                        Bukkit.dispatchCommand(_plugin.loghandler, command);
                         sendPostResponse(out, "Command sent: " + command);
                         return;
                     }
                 }
-                
+
                 sendError(out, 400, "Invalid POST Request");
                 return;
             }
@@ -177,10 +201,10 @@ public class RequestThread extends Thread
                 sendError(out, 405, "Method Not Allowed");
                 return;
             }
-            
+
             String request_path = null;
             String query_string = "";
-            
+
             String uri_parts[] = request_uri.split("\\?");
             if (uri_parts.length >= 1)
             {
@@ -190,7 +214,7 @@ public class RequestThread extends Thread
             {
                 query_string = uri_parts[1];
             }
-            
+
             Map<String, String> get_vars = new HashMap<String, String>();
             for (String pair : query_string.toString().trim().split("&"))
             {
@@ -200,19 +224,14 @@ public class RequestThread extends Thread
                     get_vars.put(URLDecoder.decode(parts[0], "UTF-8").toLowerCase().trim(), URLDecoder.decode(parts[1], "UTF-8").trim());
                 }
             }
-            
+
             String password = get_vars.get("password");
-            if (password == null)
+            if (!checkPassword(password))
             {
                 sendError(out, 403, "Permission Denied.");
                 return;
             }
-            if (!password.equals(_plugin.password))
-            {
-                sendError(out, 403, "Permission Denied.");
-                return;
-            }
-            
+
             if (request_path == null)
             {
                 sendError(out, 404, "File Not Found.");
@@ -262,7 +281,8 @@ public class RequestThread extends Thread
                     {
                         description = "&lt;DIR&gt;";
                     }
-                    out.write(("<a href=\"" + request_path + filename + "?password=" + _plugin.password + "\">" + filename + "</a> " + description + "<br>\n").getBytes());
+                    String pwline = _plugin.password != null ? "?password=" + _plugin.password : "";
+                    out.write(("<a href=\"" + request_path + filename + pwline + "\">" + filename + "</a> " + description + "<br>\n").getBytes());
                 }
                 out.write(("</p><hr><p>" + SimpleWebServer.VERSION + "</p></body><html>").getBytes());
             }
