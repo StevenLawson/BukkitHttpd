@@ -187,7 +187,8 @@ public class RequestThread extends Thread
                 {
                     if (checkPassword(password) && !command.isEmpty())
                     {
-                        Bukkit.dispatchCommand(_plugin.loghandler, command);
+                        //Bukkit.dispatchCommand(_plugin.loghandler, command);
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
                         sendPostResponse(out, "Command sent: " + command);
                         return;
                     }
