@@ -30,11 +30,18 @@ public class CommandLogger extends Handler implements CommandSender
         return this._output.toString();
     }
     
+    private void appendLog(String message)
+    {
+        _output.append(ChatColor.stripColor(message));
+        _output.append("\r\n");
+    }
+    
+    //Handler:
+    
     @Override
     public void publish(LogRecord record)
     {
-        _output.append(ChatColor.stripColor(record.getMessage()));
-        _output.append("\r\n");
+        appendLog(record.getMessage());
     }
 
     @Override
@@ -48,12 +55,13 @@ public class CommandLogger extends Handler implements CommandSender
     {
         Logger.getLogger("Minecraft").removeHandler(this);
     }
+    
+    //Command Sender:
 
     @Override
     public void sendMessage(String string)
     {
-        _output.append(ChatColor.stripColor(string));
-        _output.append("\r\n");
+        appendLog(string);
     }
 
     @Override

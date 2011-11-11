@@ -26,8 +26,6 @@ public class BukkitHttpd extends JavaPlugin
     protected String password = null;
     protected String root_directory = "./";
     
-    //protected LoggerTest loghandler;
-    
     @Override
     public void onEnable()
     {
@@ -42,9 +40,7 @@ public class BukkitHttpd extends JavaPlugin
         timeout = config.getInt("timeout", timeout);
         password = config.getString("password", null);
         root_directory = config.getString("root_directory", root_directory);
-        
-        //loghandler = new LoggerTest(this);
-        
+
         server = new SimpleWebServer(new File(root_directory), address, port, this);
         
         if (server.is_ready)
@@ -62,7 +58,6 @@ public class BukkitHttpd extends JavaPlugin
     public void onDisable()
     {
         server.stopServer();
-        //loghandler.close();
         log.info("[" + getDescription().getName() + "]: BukkitHttpd disabled.");
     }
     

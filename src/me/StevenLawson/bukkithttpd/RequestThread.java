@@ -28,6 +28,8 @@ import java.net.URLDecoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
@@ -42,6 +44,7 @@ public class RequestThread extends Thread
     private File _rootDir;
     private Socket _socket;
     private BukkitHttpd _plugin;
+    private CommandLogger _logger = null;
 
     public RequestThread(Socket socket, File rootDir, BukkitHttpd instance)
     {
@@ -122,8 +125,8 @@ public class RequestThread extends Thread
         {
             _socket.setSoTimeout(_plugin.timeout);
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(_socket.getInputStream()));
-            BufferedOutputStream out = new BufferedOutputStream(_socket.getOutputStream());
+            final BufferedReader in = new BufferedReader(new InputStreamReader(_socket.getInputStream()));
+            final BufferedOutputStream out = new BufferedOutputStream(_socket.getOutputStream());
 
             String method = null;
             String request_uri = null;
@@ -183,13 +186,39 @@ public class RequestThread extends Thread
 
                 String password = post_vars.get("password");
                 String command = post_vars.get("command");
+
                 if (command != null)
                 {
                     if (checkPassword(password) && !command.isEmpty())
                     {
-                        //Bukkit.dispatchCommand(_plugin.loghandler, command);
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
-                        sendPostResponse(out, "Command sent: " + command);
+                        String username = post_vars.get("username");
+                        if (username == null || username.length() <= 1)
+                        {
+                            username = "BukkitHttpd";
+                        }
+
+                        _logger = new CommandLogger(_plugin, username);
+
+                        Bukkit.dispatchCommand(_logger, command);
+
+                        _plugin.getServer().getScheduler().scheduleAsyncDelayedTask(_plugin, new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                try
+                                {
+                                    sendPostResponse(out, _logger.getLog());
+                                }
+                                catch (IOException ex)
+                                {
+                                    Logger.getLogger("Minecraft").log(Level.SEVERE, null, ex);
+                                }
+
+                                _logger.close();
+                            }
+                        }, 20L);
+
                         return;
                     }
                 }
