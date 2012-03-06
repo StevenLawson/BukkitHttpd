@@ -15,52 +15,52 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class BukkitHttpd extends JavaPlugin
 {
     private static final Logger log = Logger.getLogger("Minecraft");
-    
+
     private SimpleWebServer server;
-    
+
     public static final String CONFIG_FILE = "config.yml";
-    
+
     protected String address = null;
     protected int port = 8181;
     protected int timeout = 5000;
     protected String password = null;
     protected String root_directory = "./";
-    
+
     @Override
     public void onEnable()
     {
         log.log(Level.INFO, "[" + getDescription().getName() + "]: - Enabled! - Version: " + getDescription().getVersion() + " by Madgeek1450");
-        
+
         createDefaultConfiguration(CONFIG_FILE);
-        
+
         FileConfiguration config = YamlConfiguration.loadConfiguration(new File(getDataFolder(), CONFIG_FILE));
-        
-        address = config.getString("address", null);
+
+        address = config.getString("address", address);
         port = config.getInt("port", port);
         timeout = config.getInt("timeout", timeout);
-        password = config.getString("password", null);
+        password = config.getString("password", password);
         root_directory = config.getString("root_directory", root_directory);
 
         server = new SimpleWebServer(new File(root_directory), address, port, this);
-        
+
         if (server.is_ready)
         {
             server.startServer();
         }
-        
+
         if (!server.is_running)
         {
             log.severe("[" + getDescription().getName() + "]: Error starting server.");
         }
     }
-    
+
     @Override
     public void onDisable()
     {
         server.stopServer();
         log.info("[" + getDescription().getName() + "]: BukkitHttpd disabled.");
     }
-    
+
     private void createDefaultConfiguration(String name)
     {
         File actual = new File(getDataFolder(), name);
@@ -86,18 +86,18 @@ public class BukkitHttpd extends JavaPlugin
             if (input != null)
             {
                 FileOutputStream output = null;
-                
+
                 try
                 {
                     getDataFolder().mkdirs();
                     output = new FileOutputStream(actual);
                     byte[] buf = new byte[8192];
-                    int length = 0;
+                    int length;
                     while ((length = input.read(buf)) > 0)
                     {
                         output.write(buf, 0, length);
                     }
-                    
+
                     log.info("[" + getDescription().getName() + "]: Default configuration file written: " + actual.getPath());
                 }
                 catch (IOException ioex)
@@ -116,7 +116,7 @@ public class BukkitHttpd extends JavaPlugin
                     catch (IOException ioex)
                     {
                     }
-                    
+
                     try
                     {
                         if (output != null)

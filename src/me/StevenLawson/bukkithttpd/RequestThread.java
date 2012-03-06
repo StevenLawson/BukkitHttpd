@@ -1,4 +1,4 @@
-/* 
+/*
 Copyright Paul James Mutton, 2001-2004, http://www.jibble.org/
 
 This file is part of Mini Wegb Server / SimpleWebServer.
@@ -15,14 +15,7 @@ $Id: ServerSideScriptEngine.java,v 1.4 2004/02/01 13:37:35 pjm2 Exp $
  */
 package me.StevenLawson.bukkithttpd;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Socket;
 import java.net.URLDecoder;
 import java.util.Date;
@@ -196,6 +189,8 @@ public class RequestThread extends Thread
                         {
                             username = "BukkitHttpd";
                         }
+
+                        Logger.getLogger("Minecraft").info("[" + _plugin.getDescription().getName() + "]: Recieved command \"" + command + "\" from " + _socket.getInetAddress().getHostAddress() + " with username \"" + username + "\".");
 
                         _logger = new CommandLogger(_plugin, username);
 

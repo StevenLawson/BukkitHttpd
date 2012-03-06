@@ -17,27 +17,27 @@ public class CommandLogger extends Handler implements CommandSender
     private BukkitHttpd _plugin;
     private String _name;
     private StringBuilder _output = new StringBuilder();
-    
+
     public CommandLogger(BukkitHttpd plugin, String name)
     {
         this._plugin = plugin;
         this._name = name;
         Logger.getLogger("Minecraft").addHandler(this);
     }
-    
+
     public String getLog()
     {
         return this._output.toString();
     }
-    
+
     private void appendLog(String message)
     {
         _output.append(ChatColor.stripColor(message));
         _output.append("\r\n");
     }
-    
+
     //Handler:
-    
+
     @Override
     public void publish(LogRecord record)
     {
@@ -47,7 +47,6 @@ public class CommandLogger extends Handler implements CommandSender
     @Override
     public void flush()
     {
-        return;
     }
 
     @Override
@@ -55,13 +54,22 @@ public class CommandLogger extends Handler implements CommandSender
     {
         Logger.getLogger("Minecraft").removeHandler(this);
     }
-    
+
     //Command Sender:
 
     @Override
     public void sendMessage(String string)
     {
         appendLog(string);
+    }
+
+    @Override
+    public void sendMessage(String[] messages)
+    {
+        for (String message : messages)
+        {
+            appendLog(message);
+        }
     }
 
     @Override
@@ -127,13 +135,11 @@ public class CommandLogger extends Handler implements CommandSender
     @Override
     public void removeAttachment(PermissionAttachment pa)
     {
-        return;
     }
 
     @Override
     public void recalculatePermissions()
     {
-        return;
     }
 
     @Override
@@ -151,6 +157,5 @@ public class CommandLogger extends Handler implements CommandSender
     @Override
     public void setOp(boolean bln)
     {
-        return;
     }
 }
