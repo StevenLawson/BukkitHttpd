@@ -68,7 +68,7 @@ public class CommandLogger extends Handler implements CommandSender
     {
         for (String message : messages)
         {
-            appendLog(message);
+            sendMessage(message);
         }
     }
 
