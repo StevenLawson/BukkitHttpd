@@ -314,10 +314,23 @@ public class RequestThread extends Thread
             else
             {
                 reader = new BufferedInputStream(new FileInputStream(file));
+                
+                long tail_offset = 0L;
+                if (get_vars.get("tail_offset") != null)
+                {
+                    tail_offset = (long) Integer.parseInt(get_vars.get("tail_offset"));
+                }
 
-                String contentType = (String) SimpleWebServer.MIME_TYPES.get(SimpleWebServer.getExtension(file));
+                long contentLength = file.length();
+                if (tail_offset > 0L && tail_offset < contentLength)
+                {
+                    reader.skip(contentLength - tail_offset);
+                    contentLength = tail_offset;
+                }
+                
+                String contentType = SimpleWebServer.MIME_TYPES.get(SimpleWebServer.getExtension(file));
 
-                sendHeader(out, 200, contentType, file.length(), file.lastModified());
+                sendHeader(out, 200, contentType, contentLength, file.lastModified());
 
                 byte[] buffer = new byte[4096];
                 int bytesRead;
