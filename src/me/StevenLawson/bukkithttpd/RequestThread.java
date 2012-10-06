@@ -196,6 +196,13 @@ public class RequestThread extends Thread
 
                         Bukkit.dispatchCommand(_logger, command);
 
+                        String wait = post_vars.get("wait");
+                        boolean do_wait = true;
+                        if (wait != null)
+                        {
+                            do_wait = !wait.equalsIgnoreCase("false");
+                        }
+
                         _plugin.getServer().getScheduler().scheduleAsyncDelayedTask(_plugin, new Runnable()
                         {
                             @Override
@@ -212,7 +219,7 @@ public class RequestThread extends Thread
 
                                 _logger.close();
                             }
-                        }, 20L);
+                        }, (do_wait ? 20L : 0L));
 
                         return;
                     }
