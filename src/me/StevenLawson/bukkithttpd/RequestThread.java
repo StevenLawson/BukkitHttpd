@@ -190,7 +190,7 @@ public class RequestThread extends Thread
                             username = "BukkitHttpd";
                         }
 
-                        Logger.getLogger("Minecraft").info("[" + _plugin.getDescription().getName() + "]: Recieved command \"" + command + "\" from " + _socket.getInetAddress().getHostAddress() + " with username \"" + username + "\".");
+                        Logger.getLogger("Minecraft-Server").info("[" + _plugin.getDescription().getName() + "]: Recieved command \"" + command + "\" from " + _socket.getInetAddress().getHostAddress() + " with username \"" + username + "\".");
 
                         _logger = new CommandLogger(_plugin, username);
 
@@ -214,7 +214,7 @@ public class RequestThread extends Thread
                                 }
                                 catch (IOException ex)
                                 {
-                                    Logger.getLogger("Minecraft").log(Level.SEVERE, null, ex);
+                                    Logger.getLogger("Minecraft-Server").log(Level.SEVERE, null, ex);
                                 }
 
                                 _logger.close();

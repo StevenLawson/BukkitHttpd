@@ -22,7 +22,7 @@ public class CommandLogger extends Handler implements CommandSender
     {
         this._plugin = plugin;
         this._name = name;
-        Logger.getLogger("Minecraft").addHandler(this);
+        Logger.getLogger("Minecraft-Server").addHandler(this);
     }
 
     public String getLog()
@@ -52,7 +52,7 @@ public class CommandLogger extends Handler implements CommandSender
     @Override
     public void close() throws SecurityException
     {
-        Logger.getLogger("Minecraft").removeHandler(this);
+        Logger.getLogger("Minecraft-Server").removeHandler(this);
     }
 
     //Command Sender:

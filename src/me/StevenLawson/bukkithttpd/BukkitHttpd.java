@@ -14,7 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class BukkitHttpd extends JavaPlugin
 {
-    private static final Logger log = Logger.getLogger("Minecraft");
+    private static final Logger log = Logger.getLogger("Minecraft-Server");
 
     private SimpleWebServer server;
 
