@@ -37,7 +37,6 @@ public class CommandLogger extends Handler implements CommandSender
     }
 
     //Handler:
-
     @Override
     public void publish(LogRecord record)
     {
@@ -56,7 +55,6 @@ public class CommandLogger extends Handler implements CommandSender
     }
 
     //Command Sender:
-
     @Override
     public void sendMessage(String string)
     {

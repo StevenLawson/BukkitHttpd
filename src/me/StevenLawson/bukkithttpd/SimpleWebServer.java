@@ -1,16 +1,16 @@
-/* 
-Copyright Paul James Mutton, 2001-2004, http://www.jibble.org/
+/*
+ Copyright Paul James Mutton, 2001-2004, http://www.jibble.org/
 
-This file is part of Mini Wegb Server / SimpleWebServer.
+ This file is part of Mini Wegb Server / SimpleWebServer.
 
-This software is dual-licensed, allowing you to choose between the GNU
-General Public License (GPL) and the www.jibble.org Commercial License.
-Since the GPL may be too restrictive for use in a proprietary application,
-a commercial license is also provided. Full license information can be
-found at http://www.jibble.org/licenses/
+ This software is dual-licensed, allowing you to choose between the GNU
+ General Public License (GPL) and the www.jibble.org Commercial License.
+ Since the GPL may be too restrictive for use in a proprietary application,
+ a commercial license is also provided. Full license information can be
+ found at http://www.jibble.org/licenses/
 
-$Author: pjm2 $
-$Id: ServerSideScriptEngine.java,v 1.4 2004/02/01 13:37:35 pjm2 Exp $
+ $Author: pjm2 $
+ $Id: ServerSideScriptEngine.java,v 1.4 2004/02/01 13:37:35 pjm2 Exp $
 
  */
 package me.StevenLawson.bukkithttpd;
@@ -34,17 +34,14 @@ import java.util.logging.Logger;
 public class SimpleWebServer extends Thread
 {
     private static final Logger log = Logger.getLogger("Minecraft-Server");
-    
     private BukkitHttpd _plugin;
     private File _rootDir;
     private ServerSocket _serverSocket;
-    
     protected boolean is_running = false;
     protected boolean is_ready = false;
-    
     public static final String VERSION = "BukkitHttpd - by Madgeek";
-
     public static final Map<String, String> MIME_TYPES = new HashMap<String, String>();
+
     static
     {
         MIME_TYPES.put(".gif", "image/gif");
@@ -56,11 +53,11 @@ public class SimpleWebServer extends Thread
         MIME_TYPES.put(".log", "text/plain");
         MIME_TYPES.put(".yml", "text/plain");
     }
-    
+
     public SimpleWebServer(File rootDir, String address, int port, BukkitHttpd instance)
     {
         _plugin = instance;
-        
+
         try
         {
             _rootDir = rootDir.getCanonicalFile();
@@ -70,13 +67,13 @@ public class SimpleWebServer extends Thread
             log.log(Level.SEVERE, "[" + _plugin.getDescription().getName() + "]: Invalid root directory.");
             return;
         }
-        
+
         if (!_rootDir.isDirectory())
         {
             log.log(Level.SEVERE, "[" + _plugin.getDescription().getName() + "]: Invalid root directory.");
             return;
         }
-        
+
         InetAddress listen_address = null;
         if (address != null)
         {
@@ -101,21 +98,21 @@ public class SimpleWebServer extends Thread
             {
                 _serverSocket = new ServerSocket(port, 0, listen_address);
             }
-            
+
             String bound_ip = _serverSocket.getInetAddress().getHostAddress();
             if (bound_ip.equals("0.0.0.0"))
             {
                 bound_ip = "*";
             }
-            
+
             log.info("[" + _plugin.getDescription().getName() + "]: Server started. Listening on " + bound_ip + ":" + port);
         }
         catch (IOException ex)
-        {           
+        {
             log.log(Level.SEVERE, "[" + _plugin.getDescription().getName() + "]: Can't bind to: " + (address == null ? "*" : address) + ":" + port);
             return;
         }
-        
+
         is_ready = true;
     }
 
@@ -135,7 +132,7 @@ public class SimpleWebServer extends Thread
             }
         }
     }
-    
+
     public void startServer()
     {
         if (!this.is_running && this.is_ready)
@@ -144,11 +141,11 @@ public class SimpleWebServer extends Thread
             this.is_running = true;
         }
     }
-    
+
     public void stopServer()
     {
         is_running = false;
-        
+
         try
         {
             if (_serverSocket != null)

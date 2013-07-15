@@ -1,16 +1,16 @@
 /*
-Copyright Paul James Mutton, 2001-2004, http://www.jibble.org/
+ Copyright Paul James Mutton, 2001-2004, http://www.jibble.org/
 
-This file is part of Mini Wegb Server / SimpleWebServer.
+ This file is part of Mini Wegb Server / SimpleWebServer.
 
-This software is dual-licensed, allowing you to choose between the GNU
-General Public License (GPL) and the www.jibble.org Commercial License.
-Since the GPL may be too restrictive for use in a proprietary application,
-a commercial license is also provided. Full license information can be
-found at http://www.jibble.org/licenses/
+ This software is dual-licensed, allowing you to choose between the GNU
+ General Public License (GPL) and the www.jibble.org Commercial License.
+ Since the GPL may be too restrictive for use in a proprietary application,
+ a commercial license is also provided. Full license information can be
+ found at http://www.jibble.org/licenses/
 
-$Author: pjm2 $
-$Id: ServerSideScriptEngine.java,v 1.4 2004/02/01 13:37:35 pjm2 Exp $
+ $Author: pjm2 $
+ $Id: ServerSideScriptEngine.java,v 1.4 2004/02/01 13:37:35 pjm2 Exp $
 
  */
 package me.StevenLawson.bukkithttpd;
@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
+import org.bukkit.event.server.RemoteServerCommandEvent;
 
 /**
  * Copyright Paul Mutton
@@ -194,32 +195,42 @@ public class RequestThread extends Thread
 
                         _logger = new CommandLogger(_plugin, username);
 
-                        Bukkit.dispatchCommand(_logger, command);
+                        RemoteServerCommandEvent event = new RemoteServerCommandEvent(_logger, command);
 
-                        String wait = post_vars.get("wait");
-                        boolean do_wait = true;
-                        if (wait != null)
-                        {
-                            do_wait = !wait.equalsIgnoreCase("false");
-                        }
+                        Bukkit.getServer().getPluginManager().callEvent(event);
 
-                        _plugin.getServer().getScheduler().scheduleAsyncDelayedTask(_plugin, new Runnable()
+                        if (event.getCommand() != null)
                         {
-                            @Override
-                            public void run()
+                            if (event.getCommand().equals(""))
                             {
-                                try
+                                Bukkit.dispatchCommand(_logger, command);
+
+                                String wait = post_vars.get("wait");
+                                boolean do_wait = true;
+                                if (wait != null)
                                 {
-                                    sendPostResponse(out, _logger.getLog());
-                                }
-                                catch (IOException ex)
-                                {
-                                    Logger.getLogger("Minecraft-Server").log(Level.SEVERE, null, ex);
+                                    do_wait = !wait.equalsIgnoreCase("false");
                                 }
 
-                                _logger.close();
+                                _plugin.getServer().getScheduler().runTaskLaterAsynchronously(_plugin, new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        try
+                                        {
+                                            sendPostResponse(out, _logger.getLog());
+                                        }
+                                        catch (IOException ex)
+                                        {
+                                            Logger.getLogger("Minecraft-Server").log(Level.SEVERE, null, ex);
+                                        }
+
+                                        _logger.close();
+                                    }
+                                }, (do_wait ? 20L : 0L));
                             }
-                        }, (do_wait ? 20L : 0L));
+                        }
 
                         return;
                     }
@@ -321,7 +332,7 @@ public class RequestThread extends Thread
             else
             {
                 reader = new BufferedInputStream(new FileInputStream(file));
-                
+
                 long tail_offset = 0L;
                 if (get_vars.get("tail_offset") != null)
                 {
@@ -334,7 +345,7 @@ public class RequestThread extends Thread
                     reader.skip(contentLength - tail_offset);
                     contentLength = tail_offset;
                 }
-                
+
                 String contentType = SimpleWebServer.MIME_TYPES.get(SimpleWebServer.getExtension(file));
 
                 sendHeader(out, 200, contentType, contentLength, file.lastModified());

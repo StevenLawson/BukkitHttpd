@@ -15,11 +15,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class BukkitHttpd extends JavaPlugin
 {
     private static final Logger log = Logger.getLogger("Minecraft-Server");
-
     private SimpleWebServer server;
-
     public static final String CONFIG_FILE = "config.yml";
-
     protected String address = null;
     protected int port = 8181;
     protected int timeout = 5000;
