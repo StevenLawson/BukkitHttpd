@@ -127,12 +127,15 @@ public class RequestThread extends Thread
             String server_protocol = null;
 
             String req_line = in.readLine();
-            String[] line_parts = req_line.split(" ");
-            if (line_parts.length == 3)
+            if (req_line != null)
             {
-                method = line_parts[0];
-                request_uri = line_parts[1];
-                server_protocol = line_parts[2];
+                String[] line_parts = req_line.split(" ");
+                if (line_parts.length == 3)
+                {
+                    method = line_parts[0];
+                    request_uri = line_parts[1];
+                    server_protocol = line_parts[2];
+                }
             }
 
             if (method == null || request_uri == null || server_protocol == null)
