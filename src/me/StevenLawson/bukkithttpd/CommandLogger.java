@@ -3,7 +3,7 @@ package me.StevenLawson.bukkithttpd;
 import java.util.Set;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
-import java.util.logging.Logger;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
@@ -22,7 +22,7 @@ public class CommandLogger extends Handler implements CommandSender
     {
         this._plugin = plugin;
         this._name = name;
-        Logger.getLogger("Minecraft-Server").addHandler(this);
+        Bukkit.getLogger().addHandler(this);
     }
 
     public String getLog()
@@ -51,7 +51,7 @@ public class CommandLogger extends Handler implements CommandSender
     @Override
     public void close() throws SecurityException
     {
-        Logger.getLogger("Minecraft-Server").removeHandler(this);
+        Bukkit.getLogger().removeHandler(this);
     }
 
     //Command Sender:

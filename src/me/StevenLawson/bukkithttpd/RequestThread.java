@@ -22,7 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
@@ -194,46 +193,41 @@ public class RequestThread extends Thread
                             username = "BukkitHttpd";
                         }
 
-                        Logger.getLogger("Minecraft-Server").info("[" + _plugin.getDescription().getName() + "]: Recieved command \"" + command + "\" from " + _socket.getInetAddress().getHostAddress() + " with username \"" + username + "\".");
+                        Bukkit.getLogger().info("[" + _plugin.getDescription().getName() + "]: Recieved command \"" + command + "\" from " + _socket.getInetAddress().getHostAddress() + " with username \"" + username + "\".");
 
                         _logger = new CommandLogger(_plugin, username);
 
                         RemoteServerCommandEvent event = new RemoteServerCommandEvent(_logger, command);
-
                         Bukkit.getServer().getPluginManager().callEvent(event);
-
-                        if (event.getCommand() != null)
+                        if (event.getCommand() != null && !event.getCommand().isEmpty())
                         {
-                            if (event.getCommand().equals(""))
-                            {
-                                Bukkit.dispatchCommand(_logger, command);
+                            Bukkit.dispatchCommand(_logger, command);
+                        }
 
-                                String wait = post_vars.get("wait");
-                                boolean do_wait = true;
-                                if (wait != null)
+                        String wait = post_vars.get("wait");
+                        boolean do_wait = true;
+                        if (wait != null)
+                        {
+                            do_wait = !wait.equalsIgnoreCase("false");
+                        }
+
+                        _plugin.getServer().getScheduler().runTaskLaterAsynchronously(_plugin, new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                try
                                 {
-                                    do_wait = !wait.equalsIgnoreCase("false");
+                                    sendPostResponse(out, _logger.getLog());
+                                }
+                                catch (IOException ex)
+                                {
+                                    Bukkit.getLogger().log(Level.SEVERE, null, ex);
                                 }
 
-                                _plugin.getServer().getScheduler().runTaskLaterAsynchronously(_plugin, new Runnable()
-                                {
-                                    @Override
-                                    public void run()
-                                    {
-                                        try
-                                        {
-                                            sendPostResponse(out, _logger.getLog());
-                                        }
-                                        catch (IOException ex)
-                                        {
-                                            Logger.getLogger("Minecraft-Server").log(Level.SEVERE, null, ex);
-                                        }
-
-                                        _logger.close();
-                                    }
-                                }, (do_wait ? 20L : 0L));
+                                _logger.close();
                             }
-                        }
+                        }, (do_wait ? 20L : 0L));
 
                         return;
                     }

@@ -33,7 +33,7 @@ import java.util.logging.Logger;
  */
 public class SimpleWebServer extends Thread
 {
-    private static final Logger log = Logger.getLogger("Minecraft-Server");
+    private static final Logger log = org.bukkit.Bukkit.getLogger();
     private BukkitHttpd _plugin;
     private File _rootDir;
     private ServerSocket _serverSocket;

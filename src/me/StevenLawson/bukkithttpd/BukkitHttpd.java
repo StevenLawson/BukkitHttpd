@@ -8,13 +8,14 @@ import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class BukkitHttpd extends JavaPlugin
 {
-    private static final Logger log = Logger.getLogger("Minecraft-Server");
+    private static final Logger log = Bukkit.getLogger();
     private SimpleWebServer server;
     public static final String CONFIG_FILE = "config.yml";
     protected String address = null;
